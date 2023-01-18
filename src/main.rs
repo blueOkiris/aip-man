@@ -19,7 +19,7 @@ fn main() {
     match Args::parse().command {
         Commands::Install { package } => install_package(&package),
         Commands::Remove { package } => remove_package(&package),
-        Commands::Upgrade => {}, // TODO: Upgrade packages
+        Commands::Upgrade => upgrade_packages(),
         Commands::List => list_packages(),
         Commands::Run { app } => run_app(&app)        
     }
@@ -113,5 +113,40 @@ fn install_package(pkg_name: &str) {
     // Update manifest
     pkg_manifest.push(pkg.clone());
     update_pkg_manifest(&pkg_manifest);
+}
+
+/// Go through and upgrade all your installed packages.
+fn upgrade_packages() {
+    println!("Upgrading packages...");
+
+    let mut new_manifest = Vec::new();
+    let pkg_list = pull_package_list();
+    let manifest = get_pkg_manifest();
+    for inst_pkg in manifest.iter() {
+        if pkg_list.iter().any(|pkg| pkg.name == inst_pkg.name) {
+            let upstream = pkg_list.iter().find(|pkg| pkg.name == inst_pkg.name).unwrap();
+            if inst_pkg.upgradable_to(upstream) {
+                println!(
+                    "Found upgrade for '{}:' {} -> {}",
+                    inst_pkg.name, inst_pkg.version, upstream.version
+                );
+
+                new_manifest.push(upstream.clone());
+                
+                inst_pkg.remove();
+                println!("Downloading...");
+                upstream.download();
+
+                println!("Upgraded.");
+            } else {
+                new_manifest.push(inst_pkg.clone());
+            }
+        } else {
+            new_manifest.push(inst_pkg.clone());
+        }
+    }
+
+    println!("Done with upgrade.");
+    update_pkg_manifest(&new_manifest);
 }
 
