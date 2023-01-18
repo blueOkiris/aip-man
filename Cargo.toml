@@ -1,7 +1,13 @@
 [package]
-name = "aip-man"
+name = "aipman"
+authors = [ "Dylan Turner <dylantdmt@gmail.com>" ]
 version = "0.0.1"
 edition = "2021"
+license-file = "LICENSE"
+description = "The AppImage Package Manager"
+readme = "README.md"
+categories = [ "config", "filesystem" ]
+repository = "https://github.com/blueOkiris/aip-man"
 
 [dependencies]
 clap = { version = "4.1.1", features = [ "derive" ] }
