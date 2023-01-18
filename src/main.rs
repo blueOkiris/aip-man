@@ -24,10 +24,19 @@ fn main() {
         }, Commands::Upgrade => {
             // TODO: Upgrade packages
         }, Commands::List => {
-            // TODO: List installed packages
+            list_packages()
         }, Commands::Run { .. } => {
             // TODO: Launch an installed application
         }
+    }
+}
+
+/// List currently installed packages
+fn list_packages() {
+    let manifest = get_pkg_manifest();
+    for pkg in manifest {
+        pkg.print();
+        println!();
     }
 }
 
