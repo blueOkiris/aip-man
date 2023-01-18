@@ -18,19 +18,19 @@ It's a Rust project, so run `cargo build --release`
 There are 5 commands supported by the aip-man:
 
 - Install
-  + Usage: `aip-man install <package-name>`
+  + Usage: `aipman install <package-name>`
   + The `install` command will search the global package listing for the package you typed in. It will then download and install the package unless it is already installed. If it is already installed and there is a new version, it will upgrade to the latest version.
 - Remove
-  + Usage: `aip-man remove <package-name>`
+  + Usage: `aipman remove <package-name>`
   + The `remove` command will remove a package from your system if it is installed.
 - Upgrade
-  + Usage: `aip-man upgrade`
+  + Usage: `aipman upgrade`
   + This command pulls the latest list of packages and versions and upgrades your installed ones if available.
 - List
-  + Usage: `aip-man list`
+  + Usage: `aipman list`
   + List out installed packages.
 - Run
-  + Usage: `aip-man run <app-name>`
+  + Usage: `aipman run <app-name>`
   + This command will run one of your installed apps, so you don't have to navigate to the install directory to launch them.
 
 ## Contributing
