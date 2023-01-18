@@ -17,17 +17,11 @@ use crate::{
 
 fn main() {
     match Args::parse().command {
-        Commands::Install { package } => {
-            install_package(&package)
-        }, Commands::Remove { .. } => {
-            // TODO: Remove packages
-        }, Commands::Upgrade => {
-            // TODO: Upgrade packages
-        }, Commands::List => {
-            list_packages()
-        }, Commands::Run { .. } => {
-            // TODO: Launch an installed application
-        }
+        Commands::Install { package } => install_package(&package),
+        Commands::Remove { .. } => {}, // TODO: Remove packages
+        Commands::Upgrade => {}, // TODO: Upgrade packages
+        Commands::List => list_packages(),
+        Commands::Run { app } => run_app(&app)        
     }
 }
 
@@ -38,6 +32,17 @@ fn list_packages() {
         pkg.print();
         println!();
     }
+}
+
+/// Execute an application
+fn run_app(app_name: &str) {
+    let manifest = get_pkg_manifest();
+    if !manifest.iter().any(|pkg| pkg.name == app_name) {
+        println!("No such package '{}' installed!", app_name);
+        return
+    }
+
+    manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run();
 }
 
 /// Attempt to install a package or upgrade to a newer version.
