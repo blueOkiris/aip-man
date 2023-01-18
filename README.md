@@ -47,21 +47,13 @@ Each sub-command is handled via a `match` statement in the main function.
 
 ### Installed Packages
 
-AppImage packages are installed to "$HOME/AppImages". This is found in Rust using [std::env::home_dir](https://doc.rust-lang.org/std/env/fn.home_dir.html).
+AppImage packages are installed to "$HOME/AppImages". This is found in Rust using the [dirs](https://docs.rs/dirs/latest/dirs/) library.
 
 Inside this folder there will also be a manifest containing a list of each package and the installed version.
 
 The package manager will read the manifest to know about installed packages as well as the versioning. When installing, it uses this to check if a package already exists and is up to date. It will also update the manifest after installing a new package. The same is true for the remove and upgrade commands.
 
-The manifest is in JSON format:
-
-```
-{
-    "package": "version",
-    "package": "version",
-    ...
-}
-```
+The manifest is in the same JSON format as the global package list.
 
 The aip-man uses the [serde_json](https://docs.rs/serde_json/latest/serde_json/) Rust library to parse the manifest.
 
@@ -74,11 +66,13 @@ The format for an entry in the list is as follows:
 ```
 [
     ...
-    "<package name>": {
+    {
+        "name": "<package name>",
         "version": "<version string>",
         "description": "<description>",
         "url": "<link to file to download>"
-    }, "audacity": {
+    }, {
+        "name": "audacity",
         "version": "3.2.3",
         "description": "Audacity is an easy-to-use, multi-track audio editor and recorder for Windows, macOS, GNU/Linux and other operating systems. Audacity is free, open source software.",
         "url": "https://github.com/audacity/audacity/releases/download/Audacity-3.2.3/audacity-linux-3.2.3-x64.AppImage"
