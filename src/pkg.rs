@@ -10,7 +10,7 @@ use std::{
         File, create_dir_all, read_to_string, remove_file 
     }, io::{
         Write, copy
-    }
+    }, process::Command
 };
 use dirs::home_dir;
 use reqwest::blocking::get;
@@ -86,6 +86,18 @@ impl Package {
         remove_file(format!(
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
         )).expect("Failed to delete package");
+    }
+
+    pub fn run(&self) {
+        let mut app_dir = home_dir().expect(
+            "Um. Somehow you don't have a home directory. You can't use this tool"
+        );
+        app_dir.push(APP_DIR);
+        let file_name = format!(
+            "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
+        );
+
+        Command::new(file_name).output().expect("Failed to start app");
     }
 }
 
