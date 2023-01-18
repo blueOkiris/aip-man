@@ -18,7 +18,7 @@ use crate::{
 fn main() {
     match Args::parse().command {
         Commands::Install { package } => install_package(&package),
-        Commands::Remove { .. } => {}, // TODO: Remove packages
+        Commands::Remove { package } => remove_package(&package),
         Commands::Upgrade => {}, // TODO: Upgrade packages
         Commands::List => list_packages(),
         Commands::Run { app } => run_app(&app)        
@@ -44,6 +44,29 @@ fn run_app(app_name: &str) {
 
     manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run();
 }
+
+/// Remove a package
+fn remove_package(pkg_name: &str) {
+    let mut manifest = get_pkg_manifest();
+    if !manifest.iter().any(|pkg| pkg.name == pkg_name) {
+        println!("No such package '{}' installed!", pkg_name);
+        return
+    }
+
+    println!("Removing '{}'", pkg_name);
+    
+    let pkg = manifest.iter().find(|pkg| pkg.name == pkg_name).unwrap();
+    pkg.remove();
+    
+    for i in 0..manifest.len() {
+        if manifest[i].name == pkg.name {
+            manifest.remove(i);
+            break;
+        }
+    }
+    update_pkg_manifest(&manifest);
+}
+
 
 /// Attempt to install a package or upgrade to a newer version.
 fn install_package(pkg_name: &str) {
