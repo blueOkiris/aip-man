@@ -8,10 +8,9 @@ It is called the "aip-man" because that looks like it would be pronounced "ape m
 
 ## Building
 
-Dependencies:
-- (Optional) [appimaged](https://github.com/probonopd/go-appimage) to scrape your installed packages and show them in your system menus.
-
 It's a Rust project, so run `cargo build --release`
+
+You can also install it from crates.io
 
 ## Usage
 
