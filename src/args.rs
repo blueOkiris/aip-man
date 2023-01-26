@@ -3,12 +3,18 @@
  * Description: Parse cli arguments
  */
 
-use clap::{Parser, Subcommand};
+use clap::{
+    Parser, Subcommand
+};
 
 /// Structure defining CLI command and arguments.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Ask before changing package information
+    #[arg(short, long)]
+    pub ask: bool,
+
     /// One of the commands: install <pkg>, remove <pkg>, upgrade, etc.
     #[command(subcommand)]
     pub command: Commands
