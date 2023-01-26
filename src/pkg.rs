@@ -102,6 +102,7 @@ impl Package {
         Command::new(file_name).args(args)
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .output().expect("Failed to start app");
     }
 }
