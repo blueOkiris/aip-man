@@ -6,6 +6,9 @@
 mod args;
 mod pkg;
 
+use std::io::{
+    stdin, stdout, Write
+};
 use clap::Parser;
 use crate::{
     pkg::{
@@ -16,60 +19,18 @@ use crate::{
 };
 
 fn main() {
-    match Args::parse().command {
-        Commands::Install { package } => install_package(&package),
-        Commands::Remove { package } => remove_package(&package),
-        Commands::Upgrade => upgrade_packages(),
+    let args = Args::parse();
+    match args.command {
+        Commands::Install { package } => install_package(&package, args.ask),
+        Commands::Remove { package } => remove_package(&package, args.ask),
+        Commands::Upgrade => upgrade_packages(args.ask),
         Commands::List => list_packages(),
-        Commands::Run { app } => run_app(&app)        
+        Commands::Run { app } => run_app(&app, args.ask)
     }
 }
-
-/// List currently installed packages
-fn list_packages() {
-    let manifest = get_pkg_manifest();
-    for pkg in manifest {
-        pkg.print();
-        println!();
-    }
-}
-
-/// Execute an application
-fn run_app(app_name: &str) {
-    let manifest = get_pkg_manifest();
-    if !manifest.iter().any(|pkg| pkg.name == app_name) {
-        println!("No such package '{}' installed!", app_name);
-        return
-    }
-
-    manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run();
-}
-
-/// Remove a package
-fn remove_package(pkg_name: &str) {
-    let mut manifest = get_pkg_manifest();
-    if !manifest.iter().any(|pkg| pkg.name == pkg_name) {
-        println!("No such package '{}' installed!", pkg_name);
-        return
-    }
-
-    println!("Removing '{}'", pkg_name);
-    
-    let pkg = manifest.iter().find(|pkg| pkg.name == pkg_name).unwrap();
-    pkg.remove();
-    
-    for i in 0..manifest.len() {
-        if manifest[i].name == pkg.name {
-            manifest.remove(i);
-            break;
-        }
-    }
-    update_pkg_manifest(&manifest);
-}
-
 
 /// Attempt to install a package or upgrade to a newer version.
-fn install_package(pkg_name: &str) {
+fn install_package(pkg_name: &str, ask: bool) {
     let pkg_list = pull_package_list();
 
     if !pkg_list.iter().any(|pkg| pkg.name == pkg_name) {
@@ -89,6 +50,11 @@ fn install_package(pkg_name: &str) {
                 "Package '{}' is already installed. However there is an upgrade available.",
                 pkg_name
             );
+
+            if !prompt("Do you want to upgrade the package?", ask) {
+                return;
+            }
+
             println!("The current version will be removed.");
 
             // Remove from manifest
@@ -107,6 +73,10 @@ fn install_package(pkg_name: &str) {
         }
     }
 
+    if !prompt("Package found.\nDo you want to install the package?", ask) {
+        return;
+    }
+
     println!("Downloading...");
     pkg.download();
 
@@ -115,8 +85,34 @@ fn install_package(pkg_name: &str) {
     update_pkg_manifest(&pkg_manifest);
 }
 
+/// Remove a package
+fn remove_package(pkg_name: &str, ask: bool) {
+    let mut manifest = get_pkg_manifest();
+    if !manifest.iter().any(|pkg| pkg.name == pkg_name) {
+        println!("No such package '{}' installed!", pkg_name);
+        return
+    }
+    
+    if !prompt("Package found.\nAre you sure you want to remove the package?", ask) {
+        return;
+    }
+
+    println!("Removing '{}'", pkg_name);
+    
+    let pkg = manifest.iter().find(|pkg| pkg.name == pkg_name).unwrap();
+    pkg.remove();
+    
+    for i in 0..manifest.len() {
+        if manifest[i].name == pkg.name {
+            manifest.remove(i);
+            break;
+        }
+    }
+    update_pkg_manifest(&manifest);
+}
+
 /// Go through and upgrade all your installed packages.
-fn upgrade_packages() {
+fn upgrade_packages(ask: bool) {
     println!("Upgrading packages...");
 
     let mut new_manifest = Vec::new();
@@ -130,6 +126,10 @@ fn upgrade_packages() {
                     "Found upgrade for '{}:' {} -> {}",
                     inst_pkg.name, inst_pkg.version, upstream.version
                 );
+
+                if !prompt("Install?", ask) {
+                    new_manifest.push(inst_pkg.clone());
+                }
 
                 new_manifest.push(upstream.clone());
                 
@@ -148,5 +148,50 @@ fn upgrade_packages() {
 
     println!("Done with upgrade.");
     update_pkg_manifest(&new_manifest);
+}
+
+/// List currently installed packages
+fn list_packages() {
+    let manifest = get_pkg_manifest();
+    for pkg in manifest {
+        pkg.print();
+        println!();
+    }
+}
+
+/// Execute an application
+fn run_app(app_name: &str, ask: bool) {
+    let manifest = get_pkg_manifest();
+    if !manifest.iter().any(|pkg| pkg.name == app_name) {
+        println!("No such package '{}' installed!", app_name);
+        return
+    }
+
+    if prompt(format!("Are you sure you want to run '{}'?", app_name).as_str(), ask) {
+        manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run();
+    }
+}
+
+/// Get a Yes/No response from the user
+fn prompt(msg: &str, ask: bool) -> bool {
+    if !ask {
+        return true;
+    }
+
+    let mut response = String::from("Dylan is AWESOME!");
+    while response != "\n"
+            && response.to_lowercase() != "y\n" && response.to_lowercase() != "n\n" {
+        print!("{} [Y/n] ", msg);
+        stdout().flush().expect("Failed to flush stdout.");
+
+        response = String::new();
+        let _ = stdin().read_line(&mut response).unwrap();
+    }
+
+    if response.to_lowercase() == "n\n" {
+        false
+    } else {
+        true    
+    }
 }
 
