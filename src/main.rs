@@ -25,7 +25,9 @@ fn main() {
         Commands::Remove { package } => remove_package(&package, args.ask),
         Commands::Upgrade => upgrade_packages(args.ask),
         Commands::List => list_packages(),
-        Commands::Run { app } => run_app(&app, args.ask)
+        Commands::Run { app, app_args } => run_app(
+            &app, &app_args.unwrap_or(Vec::new()), args.ask
+        )
     }
 }
 
@@ -160,7 +162,7 @@ fn list_packages() {
 }
 
 /// Execute an application
-fn run_app(app_name: &str, ask: bool) {
+fn run_app(app_name: &str, app_args: &Vec<String>, ask: bool) {
     let manifest = get_pkg_manifest();
     if !manifest.iter().any(|pkg| pkg.name == app_name) {
         println!("No such package '{}' installed!", app_name);
@@ -168,7 +170,7 @@ fn run_app(app_name: &str, ask: bool) {
     }
 
     if prompt(format!("Are you sure you want to run '{}'?", app_name).as_str(), ask) {
-        manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run();
+        manifest.iter().find(|pkg| pkg.name == app_name).unwrap().run(app_args);
     }
 }
 
