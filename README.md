@@ -29,8 +29,9 @@ There are 5 commands supported by the aip-man:
   + Usage: `aipman list`
   + List out installed packages.
 - Run
-  + Usage: `aipman run <app-name>`
+  + Usage: `aipman run <app-name> [args]...`
   + This command will run one of your installed apps, so you don't have to navigate to the install directory to launch them.
+  + You can also pass any number of arguments to the AppImage if you so choose.
 
 Additionally, if you want to review changes first, you can add the --ask/-a tag which will cause the application to ask you if you want to continue. Defaults to yes.
 
