@@ -88,7 +88,7 @@ impl Package {
         )).expect("Failed to delete package");
     }
 
-    pub fn run(&self) {
+    pub fn run(&self, args: &Vec<String>) {
         let mut app_dir = home_dir().expect(
             "Um. Somehow you don't have a home directory. You can't use this tool"
         );
@@ -97,7 +97,7 @@ impl Package {
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
         );
 
-        Command::new(file_name).output().expect("Failed to start app");
+        Command::new(file_name).args(args).output().expect("Failed to start app");
     }
 }
 
