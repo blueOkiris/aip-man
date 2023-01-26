@@ -43,7 +43,10 @@ pub enum Commands {
     /// Run an installed application.
     Run {
         /// Installed application to run.
-        app: String
+        app: String,
+
+        /// Arguments to pass to the application.
+        app_args: Option<Vec<String>>
     }
 }
 
