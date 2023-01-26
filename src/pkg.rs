@@ -10,7 +10,9 @@ use std::{
         File, create_dir_all, read_to_string, remove_file 
     }, io::{
         Write, copy
-    }, process::Command
+    }, process::{
+        Stdio, Command
+    }
 };
 use dirs::home_dir;
 use reqwest::blocking::get;
@@ -97,7 +99,10 @@ impl Package {
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
         );
 
-        Command::new(file_name).args(args).output().expect("Failed to start app");
+        Command::new(file_name).args(args)
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .output().expect("Failed to start app");
     }
 }
 
