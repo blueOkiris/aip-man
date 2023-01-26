@@ -33,6 +33,8 @@ There are 5 commands supported by the aip-man:
   + Usage: `aipman run <app-name>`
   + This command will run one of your installed apps, so you don't have to navigate to the install directory to launch them.
 
+Additionally, if you want to review changes first, you can add the --ask/-a tag which will cause the application to ask you if you want to continue. Defaults to yes.
+
 ## Contributing
 
 Please contribute! Add packages to the [global package listing](https://raw.githubusercontent.com/blueOkiris/aip-man-pkg-list/main/pkgs.json) or improve the tool itself. I'd love your help!
