@@ -32,8 +32,13 @@ There are 5 commands supported by the aip-man:
   + Usage: `aipman run <app-name> [args]...`
   + This command will run one of your installed apps, so you don't have to navigate to the install directory to launch them.
   + You can also pass any number of arguments to the AppImage if you so choose.
+- Restore
+  + Usage: `aipman restore`
+  + This command will take the backup file `.aipman_backup.tar.gz` and unpack it where ~/Applications used to be.
 
-Additionally, if you want to review changes first, you can add the --ask/-a tag which will cause the application to ask you if you want to continue. Defaults to yes.
+There are two additional options that can be passed in before providing a subcommand:
+- If you want to review changes first, you can add the --ask/-a tag which will cause the application to ask you if you want to continue. Defaults to yes.
+- If you want to create a backup before making a change, you can use the --backup/-b tag that can be restored from via `aipman restore`
 
 ## Contributing
 
