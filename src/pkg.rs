@@ -28,7 +28,7 @@ use version_compare::{
 
 const PKG_LIST_URL: &'static str =
     "https://raw.githubusercontent.com/blueOkiris/aip-man-pkg-list/main/pkgs.json";
-const APP_DIR: &'static str = "Applications"; 
+pub const APP_DIR: &'static str = "Applications"; 
 
 /// Structure used to parse JSON info from package list.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -62,9 +62,8 @@ impl Package {
 
     pub fn download(&self) {
         // First, create the /home/AppImages directory if it doesn't exist
-        let mut app_dir = home_dir().expect(
-            "Um. Somehow you don't have a home directory. You can't use this tool"
-        );
+        let mut app_dir = home_dir()
+            .expect("Um. Somehow you don't have a home directory. You can't use this tool");
         app_dir.push(APP_DIR);
         create_dir_all(app_dir.clone()).expect("Failed to create Application path");
 
@@ -81,9 +80,8 @@ impl Package {
     }
 
     pub fn remove(&self) {
-        let mut app_dir = home_dir().expect(
-            "Um. Somehow you don't have a home directory. You can't use this tool"
-        );
+        let mut app_dir = home_dir()
+            .expect("Um. Somehow you don't have a home directory. You can't use this tool");
         app_dir.push(APP_DIR);
         remove_file(format!(
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
@@ -91,9 +89,8 @@ impl Package {
     }
 
     pub fn run(&self, args: &Vec<String>) {
-        let mut app_dir = home_dir().expect(
-            "Um. Somehow you don't have a home directory. You can't use this tool"
-        );
+        let mut app_dir = home_dir()
+            .expect("Um. Somehow you don't have a home directory. You can't use this tool");
         app_dir.push(APP_DIR);
         let file_name = format!(
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
@@ -120,9 +117,8 @@ pub fn pull_package_list() -> Vec<Package> {
 /// Read (or create) the installed package manifest
 pub fn get_pkg_manifest() -> Vec<Package> {
     // First, create the /home/AppImages directory if it doesn't exist
-    let mut app_dir = home_dir().expect(
-        "Um. Somehow you don't have a home directory. You can't use this tool"
-    );
+    let mut app_dir = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
     app_dir.push(APP_DIR);
     create_dir_all(app_dir.clone()).expect("Failed to create Application path");
 
@@ -142,9 +138,8 @@ pub fn get_pkg_manifest() -> Vec<Package> {
 /// Overwrite the manifest with new data
 pub fn update_pkg_manifest(manifest: &Vec<Package>) {
     // First, create the /home/AppImages directory if it doesn't exist
-    let mut app_dir = home_dir().expect(
-        "Um. Somehow you don't have a home directory. You can't use this tool"
-    );
+    let mut app_dir = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
     app_dir.push(APP_DIR);
     create_dir_all(app_dir.clone()).expect("Failed to create Application path");
 
