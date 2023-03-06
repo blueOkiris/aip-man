@@ -7,12 +7,12 @@
 use std::{
     path::Path,
     fs::{
-        File, create_dir_all, read_to_string, remove_file 
+        File, create_dir_all, read_to_string, remove_file, Permissions 
     }, io::{
         Write, copy
     }, process::{
         Stdio, Command
-    }
+    }, os::unix::fs::PermissionsExt
 };
 use dirs::home_dir;
 use reqwest::blocking::get;
@@ -29,6 +29,7 @@ use version_compare::{
 const PKG_LIST_URL: &'static str =
     "https://raw.githubusercontent.com/blueOkiris/aip-man-pkg-list/main/pkgs.json";
 pub const APP_DIR: &'static str = "Applications"; 
+pub const PERMISSION: u32 = 0o755; // -rwxr-xr-x.
 
 /// Structure used to parse JSON info from package list.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -77,6 +78,10 @@ impl Package {
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
         )).expect("Failed to save file");
         copy(&mut pkg_file, &mut out).expect("Failed to write package content to file");
+
+        // Set executable flag
+        out.set_permissions(Permissions::from_mode(PERMISSION))
+            .expect("Failed to set package permissions.");
     }
 
     pub fn remove(&self) {
