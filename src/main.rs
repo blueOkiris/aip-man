@@ -6,13 +6,28 @@
 mod args;
 mod pkg;
 
-use std::io::{
-    stdin, stdout, Write
+use std::{
+    path::Path,
+    fs::{
+        File, create_dir_all, remove_dir_all
+    }, io::{
+        stdin, stdout, Write
+    }
 };
 use clap::Parser;
+use dirs::home_dir;
+use flate2::{
+    Compression,
+    write::GzEncoder,
+    read::GzDecoder
+};
+use tar::{
+    Builder, Archive
+};
 use crate::{
     pkg::{
         pull_package_list, get_pkg_manifest, update_pkg_manifest,
+        APP_DIR
     }, args::{
         Args, Commands
     }
@@ -20,6 +35,9 @@ use crate::{
 
 fn main() {
     let args = Args::parse();
+    if args.backup {
+        create_backup();
+    }
     match args.command {
         Commands::Install { package } => install_package(&package, args.ask),
         Commands::Remove { package } => remove_package(&package, args.ask),
@@ -27,8 +45,30 @@ fn main() {
         Commands::List => list_packages(),
         Commands::Run { app, app_args } => run_app(
             &app, &app_args.unwrap_or(Vec::new()), args.ask
-        )
+        ), Commands::Restore => restore(args.ask)
     }
+}
+
+/// Create a backup of ~/Applications as a tar that can be used for restorations
+fn create_backup() {
+    println!("Creating backup. This may take a while.");
+
+    // First, create the /home/AppImages directory if it doesn't exist
+    let mut app_dir = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
+    app_dir.push(APP_DIR);
+    create_dir_all(app_dir.clone()).expect("Failed to create Application path");
+
+    let home = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
+    let home = home.to_str().unwrap();
+    let tar_gz = File::create(format!("{}/.aipman_backup.tar.gz", home))
+        .expect("Failed to create backup archive.");
+    let enc = GzEncoder::new(tar_gz, Compression::default());
+    let mut tar = Builder::new(enc);
+    tar.append_dir_all("Applications", app_dir).expect("Failed to make backup of ~/Applications");
+
+    println!("Done.");
 }
 
 /// Attempt to install a package or upgrade to a newer version.
@@ -195,5 +235,40 @@ fn prompt(msg: &str, ask: bool) -> bool {
     } else {
         true    
     }
+}
+
+/// Untar the backup (if exists) to restore to a previous ~/Applications directory
+fn restore(ask: bool) {
+    if !prompt("Restoring will delete your current Applications folder. Continue?", ask) {
+        return;
+    }
+
+    // First check if the archive exists
+    let home = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
+    let home = home.to_str().unwrap();
+    if !Path::new(&format!("{}/.aipman_backup.tar.gz", home)).exists() {
+        println!("No backup found. Cannot restore where a backup does not exist.");
+        return;
+    }
+
+    // Then remove the current ~/Applications
+    println!("Removing corrupted ~/Applications.");
+    let mut app_dir = home_dir()
+        .expect("Um. Somehow you don't have a home directory. You can't use this tool");
+    app_dir.push(APP_DIR);
+    remove_dir_all(app_dir)
+        .expect("Failed to remove Applications dir.");
+
+    // Unpack the archive
+    println!("Restoring backup...");
+    let tar_gz = File::open(&format!("{}/.aipman_backup.tar.gz", home))
+        .expect("Failed to open backup.");
+    let tar = GzDecoder::new(tar_gz);
+    let mut archive = Archive::new(tar);
+    archive.unpack(home)
+        .expect("Failed to unpack backup archive.");
+    
+    println!("Complete.");
 }
 
