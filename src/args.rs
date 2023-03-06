@@ -15,6 +15,10 @@ pub struct Args {
     #[arg(short, long)]
     pub ask: bool,
 
+    /// Create a backup of ~/Applications that can be restored from
+    #[arg(short, long)]
+    pub backup: bool,
+
     /// One of the commands: install <pkg>, remove <pkg>, upgrade, etc.
     #[command(subcommand)]
     pub command: Commands
@@ -47,6 +51,9 @@ pub enum Commands {
 
         /// Arguments to pass to the application.
         app_args: Option<Vec<String>>
-    }
+    },
+
+    /// Restore ~/Applications from backup
+    Restore
 }
 
