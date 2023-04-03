@@ -175,10 +175,12 @@ fn upgrade_packages(ask: bool) {
 
                 new_manifest.push(upstream.clone());
                 
-                inst_pkg.remove();
                 println!("Downloading...");
                 upstream.download();
 
+                println!("Removing old...");
+                inst_pkg.remove();
+                
                 println!("Upgraded.");
             } else {
                 new_manifest.push(inst_pkg.clone());
