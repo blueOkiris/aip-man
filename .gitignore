@@ -1,2 +1,6 @@
+# Rust
 target/
+
+# For testing purposes
+*.json
 
