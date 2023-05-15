@@ -40,8 +40,8 @@ fn main() {
     }
     match args.command {
         Commands::Install { package } => install_package(&package, args.ask, &args.repo),
-        Commands::Remove { package } => remove_package(&package, args.ask, &args.repo),
-        Commands::Upgrade => upgrade_packages(args.ask),
+        Commands::Remove { package } => remove_package(&package, args.ask),
+        Commands::Upgrade => upgrade_packages(args.ask, &args.repo),
         Commands::List => list_packages(),
         Commands::Run { app, app_args } => run_app(
             &app, &app_args.unwrap_or(Vec::new()), args.ask
