@@ -9,7 +9,7 @@ use std::{
     fs::{
         File, create_dir_all, read_to_string, remove_file, Permissions 
     }, io::{
-        Write, copy
+        Write, copy, BufReader
     }, process::{
         Stdio, Command
     }, os::unix::fs::PermissionsExt
@@ -20,7 +20,7 @@ use serde::{
     Serialize, Deserialize
 };
 use serde_json::{
-    from_str, to_string_pretty
+    from_str, to_string_pretty, from_reader
 };
 use version_compare::{
     compare, Cmp
@@ -118,10 +118,18 @@ impl Package {
 /// Note that this is used to hide complexity from the top level functions, so it cannot return a
 /// result/error. All errors must be handled here.
 pub fn pull_package_list(repo: &Option<String>) -> Vec<Package> {
-    let url = repo.unwrap_or(PKG_LIST_URL.to_string());
-    let list_json = get(url).expect("Failed to download package list")
-        .text().expect("Failed to get package list text");
-    from_str(list_json.as_str()).expect("Failed to parse global package list")
+    let url = repo.clone().unwrap_or(PKG_LIST_URL.to_string());
+    if url.as_str().starts_with("file://") {
+        // Local instead
+        let file = File::open(url.split_at(7).1)
+            .expect(&format!("Failed to open local repo '{}'", url));
+        let reader = BufReader::new(file);
+        from_reader(reader).expect("Failed to parse local package list.")
+    } else {
+        let list_json = get(url).expect("Failed to download package list")
+            .text().expect("Failed to get package list text");
+        from_str(list_json.as_str()).expect("Failed to parse package list.")
+    }
 }
 
 /// Read (or create) the installed package manifest
