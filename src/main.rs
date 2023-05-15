@@ -39,8 +39,8 @@ fn main() {
         create_backup();
     }
     match args.command {
-        Commands::Install { package } => install_package(&package, args.ask),
-        Commands::Remove { package } => remove_package(&package, args.ask),
+        Commands::Install { package } => install_package(&package, args.ask, &args.repo),
+        Commands::Remove { package } => remove_package(&package, args.ask, &args.repo),
         Commands::Upgrade => upgrade_packages(args.ask),
         Commands::List => list_packages(),
         Commands::Run { app, app_args } => run_app(
@@ -72,8 +72,8 @@ fn create_backup() {
 }
 
 /// Attempt to install a package or upgrade to a newer version.
-fn install_package(pkg_name: &str, ask: bool) {
-    let pkg_list = pull_package_list();
+fn install_package(pkg_name: &str, ask: bool, repo: &Option<String>) {
+    let pkg_list = pull_package_list(repo);
 
     if !pkg_list.iter().any(|pkg| pkg.name == pkg_name) {
         println!("Could not find package by the name of '{}'.", pkg_name);
@@ -154,11 +154,11 @@ fn remove_package(pkg_name: &str, ask: bool) {
 }
 
 /// Go through and upgrade all your installed packages.
-fn upgrade_packages(ask: bool) {
+fn upgrade_packages(ask: bool, repo: &Option<String>) {
     println!("Upgrading packages...");
 
     let mut new_manifest = Vec::new();
-    let pkg_list = pull_package_list();
+    let pkg_list = pull_package_list(repo);
     let manifest = get_pkg_manifest();
     for inst_pkg in manifest.iter() {
         if pkg_list.iter().any(|pkg| pkg.name == inst_pkg.name) {
