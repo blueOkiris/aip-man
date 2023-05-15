@@ -19,6 +19,11 @@ pub struct Args {
     #[arg(short, long)]
     pub backup: bool,
 
+    /// Use a different package repo than https://github.com/blueOkiris/aip-man-pkg-list.
+    /// Will not be updated.
+    #[arg(short, long)]
+    pub repo: bool,
+
     /// One of the commands: install <pkg>, remove <pkg>, upgrade, etc.
     #[command(subcommand)]
     pub command: Commands
