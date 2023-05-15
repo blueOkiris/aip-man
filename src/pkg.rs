@@ -88,9 +88,13 @@ impl Package {
         let mut app_dir = home_dir()
             .expect("Um. Somehow you don't have a home directory. You can't use this tool");
         app_dir.push(APP_DIR);
-        remove_file(format!(
+        match remove_file(format!(
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
-        )).expect("Failed to delete package");
+            )) {
+            Ok(_) => {},
+            Err(_) =>
+                println!("Warning: Failed to remove file. Manual intervention may be required")
+        }
     }
 
     pub fn run(&self, args: &Vec<String>) {
