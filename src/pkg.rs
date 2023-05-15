@@ -117,8 +117,9 @@ impl Package {
 ///
 /// Note that this is used to hide complexity from the top level functions, so it cannot return a
 /// result/error. All errors must be handled here.
-pub fn pull_package_list() -> Vec<Package> {
-    let list_json = get(PKG_LIST_URL).expect("Failed to download package list")
+pub fn pull_package_list(repo: &Option<String>) -> Vec<Package> {
+    let url = repo.unwrap_or(PKG_LIST_URL.to_string());
+    let list_json = get(url).expect("Failed to download package list")
         .text().expect("Failed to get package list text");
     from_str(list_json.as_str()).expect("Failed to parse global package list")
 }
