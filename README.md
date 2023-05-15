@@ -36,9 +36,11 @@ There are 5 commands supported by the aip-man:
   + Usage: `aipman restore`
   + This command will take the backup file `.aipman_backup.tar.gz` and unpack it where ~/Applications used to be.
 
-There are two additional options that can be passed in before providing a subcommand:
-- If you want to review changes first, you can add the --ask/-a tag which will cause the application to ask you if you want to continue. Defaults to yes.
-- If you want to create a backup before making a change, you can use the --backup/-b tag that can be restored from via `aipman restore`
+There are three additional options that can be passed in before providing a subcommand:
+- If you want to review changes first, you can add the `--ask/-a` tag which will cause the application to ask you if you want to continue. Defaults to yes.
+- If you want to create a backup before making a change, you can use the `--backup/-b` tag that can be restored from via `aipman restore`
+- If you want to use a different repo than the global package list, you can use `--repo URL/-r URL`
+   + You can use local paths here as well by doing `--repo file://<path to file>`
 
 ## Contributing
 
