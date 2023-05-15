@@ -20,9 +20,11 @@ pub struct Args {
     pub backup: bool,
 
     /// Use a different package repo than https://github.com/blueOkiris/aip-man-pkg-list.
-    /// Will not be updated.
+    /// To upgrade from that repo, run upgrade with this flag. Works with local repos via file://.
+    /// Should be a link to pkgs.json like:
+    /// https://raw.githubusercontent.com/blueOkiris/aip-man-pkg-list/main/pkgs.json
     #[arg(short, long)]
-    pub repo: bool,
+    pub repo: Option<String>,
 
     /// One of the commands: install <pkg>, remove <pkg>, upgrade, etc.
     #[command(subcommand)]
