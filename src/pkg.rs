@@ -5,6 +5,7 @@
  */
 
 use std::{
+    env::consts::ARCH,
     path::Path,
     fs::{
         File, create_dir_all, remove_file, Permissions, read, read_to_string, rename, remove_dir_all
@@ -12,7 +13,8 @@ use std::{
         Write, copy, BufReader, Cursor
     }, process::{
         Stdio, Command
-    }, os::unix::fs::PermissionsExt
+    }, os::unix::fs::PermissionsExt,
+    collections::HashMap
 };
 use dirs::home_dir;
 use flate2::read::GzDecoder;
@@ -42,7 +44,8 @@ pub struct Package {
     pub version: String,
     pub description: String,
     pub url: String,
-    pub compressed: Option<bool>
+    pub compressed: Option<bool>,
+    pub alt_arch_urls: Option<HashMap<String, String>>
 }
 
 impl Package {
@@ -53,7 +56,18 @@ impl Package {
         println!("| Name: {}", self.name);
         println!("| Description: {}", self.description);
         println!("| Version: {}", self.version);
+        println!("| Compressed?: {}", self.compressed.is_some() && self.compressed.unwrap());
         println!("| Url: {}", self.url);
+        println!("| Alternate Architecture Urls:{}", if self.alt_arch_urls.is_none() {
+            "None"
+        } else {
+            ""
+        });
+        if self.alt_arch_urls.is_some() {
+            for (arch, url) in self.alt_arch_urls.clone().unwrap().iter() {
+                println!("| - {}: {}", arch, url);
+            }
+        }
     }
 
     /// Check if another package is a newer version.
@@ -74,9 +88,14 @@ impl Package {
         create_dir_all(app_dir.clone()).expect("Failed to create Application path");
 
         // Grab the file
-        let mut pkg_file = get(self.url.clone()).expect(
-            "Failed to download package"
-        );
+        let url = if self.alt_arch_urls.is_some()
+                    && self.alt_arch_urls.clone().unwrap().contains_key(ARCH) {
+                println!("Using architecture specific url...");
+                self.alt_arch_urls.clone().unwrap()[ARCH].clone()
+            } else {
+            self.url.clone()
+        };
+        let mut pkg_file = get(url.clone()).expect("Failed to download package");
 
         // Write it
         let app_image_path = format!(
@@ -91,11 +110,11 @@ impl Package {
 
             // Extract file to ~/Applications/tmp-<name>
             let tmp_dir = format!("{}/tmp-{}", app_dir.as_os_str().to_str().unwrap(), self.name);
-            if self.url.ends_with(".zip") {
+            if url.ends_with(".zip") {
                 let file_contents = read(app_image_path.clone()).expect("Failed to read zip contents");
                 extract(Cursor::new(file_contents), &Path::new(&tmp_dir), true)
                     .expect("Failed to extract zip.");
-            } else if self.url.ends_with(".gz") {
+            } else if url.ends_with(".gz") {
                 let tar_file = File::open(app_image_path.clone())
                     .expect("Failed to open archive.");
                 let tar = GzDecoder::new(tar_file);
@@ -138,8 +157,7 @@ impl Package {
         } else {
             // Set executable flag
             println!("Setting executable flag...");
-            let app_image_file = File::create(app_image_path).expect("Failed to set executable.");
-            app_image_file.set_permissions(Permissions::from_mode(PERMISSION))
+            out.set_permissions(Permissions::from_mode(PERMISSION))
                 .expect("Failed to set package permissions.");
         }
     }
