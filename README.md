@@ -35,6 +35,9 @@ There are 5 commands supported by the aip-man:
 - Restore
   + Usage: `aipman restore`
   + This command will take the backup file `.aipman_backup.tar.gz` and unpack it where ~/Applications used to be.
+- Available
+  + Usage: `aipman available`
+  + This command prints a list of all packages available. You can then search by piping to grep like `aipman available | grep -i -A 6 <package I want to search for>`
 
 There are three additional options that can be passed in before providing a subcommand:
 - If you want to review changes first, you can add the `--ask/-a` tag which will cause the application to ask you if you want to continue. Defaults to yes.
