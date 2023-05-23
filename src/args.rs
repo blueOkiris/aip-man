@@ -1,7 +1,5 @@
-/*
- * Author(s): Dylan Turner
- * Description: Parse cli arguments
- */
+// Author(s): Dylan Turner
+//! Parse cli arguments
 
 use clap::{
     Parser, Subcommand
@@ -60,7 +58,10 @@ pub enum Commands {
         app_args: Option<Vec<String>>
     },
 
-    /// Restore ~/Applications from backup
-    Restore
+    /// Restore ~/Applications from backup.
+    Restore,
+
+    /// List all packages that can be installed.
+    Available
 }
 
