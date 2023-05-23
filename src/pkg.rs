@@ -1,8 +1,5 @@
-/*
- * Author(s): Dylan Turner
- * Description:
- *   Abstraction of packages, pulling them, and installing them to keep code in main simpler
- */
+// Author(s): Dylan Turner
+//! Abstraction of packages, pulling them, and installing them to keep code in main simpler
 
 use std::{
     env::consts::ARCH,
@@ -58,8 +55,8 @@ impl Package {
         println!("| Version: {}", self.version);
         println!("| Compressed?: {}", self.compressed.is_some() && self.compressed.unwrap());
         println!("| Url: {}", self.url);
-        println!("| Alternate Architecture Urls:{}", if self.alt_arch_urls.is_none() {
-            "None"
+        println!("| Alternative Architecture Urls:{}", if self.alt_arch_urls.is_none() {
+            " None"
         } else {
             ""
         });
