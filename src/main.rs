@@ -1,7 +1,5 @@
-/*
- * Author(s): Dylan Turner
- * Description: Entry point for the App Image Package Manager
- */
+// Author(s): Dylan Turner
+//! Entry point for the App Image Package Manager and core functions
 
 mod args;
 mod pkg;
@@ -45,7 +43,8 @@ fn main() {
         Commands::List => list_packages(),
         Commands::Run { app, app_args } => run_app(
             &app, &app_args.unwrap_or(Vec::new()), args.ask
-        ), Commands::Restore => restore(args.ask)
+        ), Commands::Restore => restore(args.ask),
+        Commands::Available => list_available(&args.repo)
     }
 }
 
@@ -272,5 +271,14 @@ fn restore(ask: bool) {
         .expect("Failed to unpack backup archive.");
     
     println!("Complete.");
+}
+
+/// Download package list and print the packages
+fn list_available(repo: &Option<String>) {
+    let pkg_list = pull_package_list(repo);
+    for pkg in pkg_list {
+        pkg.print();
+        println!();
+    }
 }
 
