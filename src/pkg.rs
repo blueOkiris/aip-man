@@ -7,14 +7,16 @@
 use std::{
     path::Path,
     fs::{
-        File, create_dir_all, read_to_string, remove_file, Permissions 
+        File, create_dir_all, remove_file, Permissions, read, read_to_string, rename, remove_dir_all
     }, io::{
-        Write, copy, BufReader
+        Write, copy, BufReader, Cursor
     }, process::{
         Stdio, Command
     }, os::unix::fs::PermissionsExt
 };
 use dirs::home_dir;
+use flate2::read::GzDecoder;
+use glob::glob;
 use reqwest::blocking::get;
 use serde::{
     Serialize, Deserialize
@@ -22,9 +24,11 @@ use serde::{
 use serde_json::{
     from_str, to_string_pretty, from_reader
 };
+use tar::Archive;
 use version_compare::{
     compare, Cmp
 };
+use zip_extract::extract;
 
 const PKG_LIST_URL: &'static str =
     "https://raw.githubusercontent.com/blueOkiris/aip-man-pkg-list/main/pkgs.json";
@@ -37,7 +41,8 @@ pub struct Package {
     pub name: String,
     pub version: String,
     pub description: String,
-    pub url: String
+    pub url: String,
+    pub compressed: Option<bool>
 }
 
 impl Package {
@@ -72,16 +77,71 @@ impl Package {
         let mut pkg_file = get(self.url.clone()).expect(
             "Failed to download package"
         );
-        
+
         // Write it
-        let mut out = File::create(format!(
+        let app_image_path = format!(
             "{}/{}-{}.AppImage", app_dir.as_os_str().to_str().unwrap(), self.name, self.version
-        )).expect("Failed to save file");
+        );
+        let mut out = File::create(app_image_path.clone()).expect("Failed to save file");
         copy(&mut pkg_file, &mut out).expect("Failed to write package content to file");
 
-        // Set executable flag
-        out.set_permissions(Permissions::from_mode(PERMISSION))
-            .expect("Failed to set package permissions.");
+        // If it's compressed, extract it
+        if self.compressed.is_some() && self.compressed.unwrap() {
+            println!("AppImage is within archive. Extracting...");
+
+            // Extract file to ~/Applications/tmp-<name>
+            let tmp_dir = format!("{}/tmp-{}", app_dir.as_os_str().to_str().unwrap(), self.name);
+            if self.url.ends_with(".zip") {
+                let file_contents = read(app_image_path.clone()).expect("Failed to read zip contents");
+                extract(Cursor::new(file_contents), &Path::new(&tmp_dir), true)
+                    .expect("Failed to extract zip.");
+            } else if self.url.ends_with(".gz") {
+                let tar_file = File::open(app_image_path.clone())
+                    .expect("Failed to open archive.");
+                let tar = GzDecoder::new(tar_file);
+                let mut archive = Archive::new(tar);
+                archive.unpack(tmp_dir.clone()).expect("Failed to unpack tar archive.");        
+            }
+
+            println!("Removing archive...");
+            remove_file(app_image_path.clone()).expect("Failed to delete old archive.");
+
+            // Move the underlying AppImage into place
+            let entries = glob(format!("{}/*.AppImage", tmp_dir).as_str())
+                .expect("Failed to find AppImage in archive.");
+            for entry in entries {
+                match entry {
+                    Ok(path) => {
+                        println!("Setting executable flag...");
+                        let app_image_file = File::open(path.clone())
+                            .expect("Failed to set executable.");
+                        app_image_file.set_permissions(Permissions::from_mode(PERMISSION))
+                            .expect("Failed to set package permissions.");
+
+                        println!(
+                            "Moving {} to {}",
+                            path.as_os_str().to_str().unwrap(),
+                            app_image_path.clone()
+                        );
+                        rename(path, Path::new(&app_image_path.clone()))
+                            .expect("Failed to move AppImage into proper location.");
+                        break;
+                    },
+                    Err(_) => {}
+                }
+            }
+            
+            match remove_dir_all(tmp_dir.clone()) {
+                Ok(_) => {},
+                Err(_) => println!("Failed to remove {}. Manual intervention necessary.", tmp_dir)
+            }
+        } else {
+            // Set executable flag
+            println!("Setting executable flag...");
+            let app_image_file = File::create(app_image_path).expect("Failed to set executable.");
+            app_image_file.set_permissions(Permissions::from_mode(PERMISSION))
+                .expect("Failed to set package permissions.");
+        }
     }
 
     pub fn remove(&self) {
